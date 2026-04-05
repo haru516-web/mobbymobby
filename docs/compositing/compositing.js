@@ -67,6 +67,51 @@ function setCompositingStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setCompositingLoading(isLoading) {
+  const overlay = document.getElementById("compositingLoadingOverlay");
+  if (overlay) overlay.hidden = !isLoading;
+}
+
+function setCompositingSection(sectionId, open) {
+  document.querySelectorAll("[data-compositing-section]").forEach((section) => {
+    const isTarget = section.getAttribute("data-compositing-section") === sectionId;
+    const nextOpen = Boolean(open) && isTarget;
+    section.classList.toggle("is-open", nextOpen);
+    const toggle = section.querySelector("[data-compositing-toggle]");
+    const body = section.querySelector("[data-compositing-body]");
+    if (toggle) toggle.setAttribute("aria-expanded", nextOpen ? "true" : "false");
+    if (body) body.hidden = !nextOpen;
+  });
+}
+
+function setCompositingFlow(templateConfirmed) {
+  const templateSection = document.querySelector('[data-compositing-section="template"]');
+  const uploadSection = document.querySelector('[data-compositing-section="upload"]');
+  const uploadBody = document.querySelector('[data-compositing-body="upload"]');
+  const subtitleSection = document.querySelector('[data-compositing-section="subtitle"]');
+  const subtitleBody = document.querySelector('[data-compositing-body="subtitle"]');
+  const scaleBlock = document.getElementById("compositingScaleBlock");
+  const actions = document.getElementById("compositingActions");
+  if (!templateConfirmed) {
+    if (templateSection) templateSection.hidden = false;
+    if (uploadSection) uploadSection.hidden = true;
+    if (uploadBody) uploadBody.hidden = true;
+    if (subtitleSection) subtitleSection.hidden = true;
+    if (subtitleBody) subtitleBody.hidden = true;
+    setCompositingSection("template", true);
+    if (scaleBlock) scaleBlock.hidden = true;
+    if (actions) actions.hidden = true;
+    return;
+  }
+  if (templateSection) templateSection.hidden = true;
+  if (uploadSection) uploadSection.hidden = false;
+  if (uploadBody) uploadBody.hidden = false;
+  if (subtitleSection) subtitleSection.hidden = false;
+  if (subtitleBody) subtitleBody.hidden = true;
+  if (scaleBlock) scaleBlock.hidden = true;
+  if (actions) actions.hidden = true;
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -205,6 +250,34 @@ async function loadUserImage(file) {
   return loadImage(src);
 }
 
+async function handleCompositingUploadV2(file) {
+  if (!file) return;
+  setCompositingStatus("画像を処理しています...");
+  setCompositingLoading(true);
+  try {
+    const image = await loadUserImage(file);
+    const segmentPerson = await getSegmentPerson();
+    compositingState.subjectCanvas = await segmentPerson(image);
+    resetCompositingSubjectPosition();
+    renderCompositingPreview();
+    const subtitleSection = document.querySelector('[data-compositing-section="subtitle"]');
+    const scaleBlock = document.getElementById("compositingScaleBlock");
+    const actions = document.getElementById("compositingActions");
+    if (subtitleSection) subtitleSection.hidden = false;
+    if (scaleBlock) scaleBlock.hidden = false;
+    if (actions) actions.hidden = false;
+    setCompositingStatus("画像を配置しました。ドラッグで位置調整、スライダーでサイズ調整ができます。");
+    setCompositingSection("subtitle", true);
+  } catch (error) {
+    console.error(error);
+    compositingState.subjectCanvas = null;
+    renderCompositingPreview();
+    setCompositingStatus(`画像の処理に失敗しました: ${error?.message || "unknown error"}`);
+  } finally {
+    setCompositingLoading(false);
+  }
+}
+
 async function handleCompositingUpload(file) {
   if (!file) return;
   setCompositingStatus("人物を抽出しています...");
@@ -230,10 +303,27 @@ function initCompositingTool() {
   const uploadButton = document.getElementById("compositingUploadButton");
   const fileInput = document.getElementById("compositingFileInput");
   const downloadButton = document.getElementById("compositingDownloadButton");
-  if (!canvas || !scaleInput || !subtitleInput || !uploadButton || !fileInput || !downloadButton) return;
+  const templateConfirmButton = document.getElementById("compositingTemplateConfirmButton");
+  if (!canvas || !scaleInput || !subtitleInput || !uploadButton || !fileInput || !downloadButton || !templateConfirmButton) return;
 
+  setCompositingLoading(false);
+  setCompositingFlow(false);
   renderCompositingTemplates();
   setActiveCompositingTemplate(compositingState.templateId).catch(console.error);
+
+  document.querySelectorAll("[data-compositing-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const sectionId = button.getAttribute("data-compositing-toggle");
+      if (!sectionId) return;
+      const section = document.querySelector(`[data-compositing-section="${sectionId}"]`);
+      const isOpen = section?.classList.contains("is-open");
+      setCompositingSection(sectionId, !isOpen);
+    });
+  });
+
+  templateConfirmButton.addEventListener("click", () => {
+    setCompositingFlow(true);
+  });
 
   scaleInput.addEventListener("input", () => {
     compositingState.subject.scale = Number(scaleInput.value || 30) / 100;
@@ -248,7 +338,7 @@ function initCompositingTool() {
   uploadButton.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files?.[0];
-    await handleCompositingUpload(file);
+    await handleCompositingUploadV2(file);
     fileInput.value = "";
   });
 

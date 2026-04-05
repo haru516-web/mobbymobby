@@ -870,10 +870,43 @@
     }
 
     .hero-character-action.mode {
+      position: relative;
       font-size: 0.78rem;
       letter-spacing: 0.03em;
       line-height: 1.15;
-      flex-direction: column;
+      flex-direction: row;
+      padding-bottom: 0;
+    }
+
+    .hero-character-action.mode::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      bottom: -4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background-color: rgba(255, 248, 239, 0.96);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c5240' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 7a8 8 0 0 0-13.66-2.34L4 7'/%3E%3Cpath d='M4 3v4h4'/%3E%3Cpath d='M4 17a8 8 0 0 0 13.66 2.34L20 17'/%3E%3Cpath d='M20 21v-4h-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 12px 12px;
+      box-shadow:
+        0 3px 8px rgba(89, 70, 52, 0.16),
+        inset 0 0 0 1px rgba(108, 82, 64, 0.18);
+      opacity: 0.82;
+      pointer-events: none;
+      transform: rotate(0deg) scale(1);
+      transition: transform 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
+    }
+
+    .hero-character-action.mode.is-switching::after {
+      transform: rotate(180deg) scale(1.14);
+      background-color: rgba(255, 255, 255, 1);
+      box-shadow:
+        0 5px 12px rgba(89, 70, 52, 0.22),
+        0 0 0 4px rgba(255, 214, 160, 0.28),
+        inset 0 0 0 1px rgba(108, 82, 64, 0.2);
     }
 
     .hero-smoke-canvas {
@@ -2840,6 +2873,15 @@
 
       .hero-character-action.mode {
         font-size: 0.68rem;
+        padding-bottom: 0;
+      }
+
+      .hero-character-action.mode::after {
+        right: -4px;
+        bottom: -3px;
+        width: 16px;
+        height: 16px;
+        background-size: 10px 10px;
       }
     }
 
@@ -4820,6 +4862,10 @@
       <div class="popup-content" style="max-width:1100px;">
         <button class="popup-close" id="closeCompositingPopup" aria-label="閉じる">×</button>
         <div class="compositing-shell">
+          <div id="compositingLoadingOverlay" class="compositing-loading-overlay" hidden>
+            <div class="compositing-loading-spinner" aria-hidden="true"></div>
+            <p class="compositing-loading-text">画像を処理しています...</p>
+          </div>
           <div class="compositing-head">
             <h2>画像合成</h2>
             <p>画像をアップロードすると、背景を自動で抜いてテンプレ右下へ配置します。配置後はドラッグして位置調整できます。</p>
@@ -4832,25 +4878,35 @@
               <p class="compositing-stage-hint">人物をつまんで移動。右下配置から始まります。</p>
             </div>
             <div class="compositing-controls-card">
-              <div>
-                <p class="compositing-label">テンプレート</p>
-                <div id="compositingTemplateGrid" class="compositing-template-grid"></div>
+              <div class="compositing-section is-open" data-compositing-section="template">
+                <button type="button" class="compositing-toggle" data-compositing-toggle="template" aria-expanded="true">
+                  <span>テンプレート</span>
+                </button>
+                <div class="compositing-section-body" data-compositing-body="template">
+                  <div id="compositingTemplateGrid" class="compositing-template-grid"></div>
+                  <button id="compositingTemplateConfirmButton" class="btn btn-primary compositing-confirm-btn" type="button">このテンプレートで決定する</button>
+                </div>
               </div>
-              <div class="compositing-upload">
-                <p class="compositing-label">人物画像</p>
-                <input id="compositingFileInput" type="file" accept="image/*">
-                <button id="compositingUploadButton" class="btn btn-primary compositing-upload-btn" type="button">画像をアップロード</button>
+              <div class="compositing-section" data-compositing-section="upload" hidden>
+                <div class="compositing-section-body" data-compositing-body="upload" hidden>
+                  <div class="compositing-upload">
+                    <input id="compositingFileInput" type="file" accept="image/*">
+                    <button id="compositingUploadButton" class="btn btn-primary compositing-upload-btn" type="button">画像をアップロード</button>
+                  </div>
+                </div>
               </div>
-              <div>
+              <div id="compositingScaleBlock" hidden>
                 <p class="compositing-label">人物サイズ</p>
                 <input id="compositingScale" class="compositing-range" type="range" min="20" max="80" value="30">
               </div>
-              <div class="compositing-copy">
-                <p class="compositing-label">サブタイトル</p>
-                <input id="compositingSubtitle" class="compositing-text-input" type="text" maxlength="28" placeholder="ロゴ下に入れる文字を入力">
+              <div class="compositing-section" data-compositing-section="subtitle" hidden>
+                <div class="compositing-section-body" data-compositing-body="subtitle" hidden>
+                  <div class="compositing-copy">
+                    <input id="compositingSubtitle" class="compositing-text-input" type="text" maxlength="28" placeholder="サブタイトルを入力">
+                  </div>
+                </div>
               </div>
-              <div id="compositingStatus" class="compositing-status">テンプレートを選んでから人物画像をアップロードしてください。</div>
-              <div class="compositing-actions">
+              <div id="compositingActions" class="compositing-actions" hidden>
                 <button id="compositingDownloadButton" class="btn btn-secondary compositing-download-btn" type="button">画像を保存</button>
               </div>
             </div>
@@ -5376,6 +5432,12 @@
       });
 
       modeButton.addEventListener("click", () => {
+        modeButton.classList.remove("is-switching");
+        void modeButton.offsetWidth;
+        modeButton.classList.add("is-switching");
+        window.setTimeout(() => {
+          modeButton.classList.remove("is-switching");
+        }, 380);
         switchCarouselSet(currentSetIndex + 1);
       });
 
@@ -6527,10 +6589,6 @@
                 </div>
               </div>
             `
-          },
-          {
-            title: "",
-            body: `「${schoolNote.catch || schoolNote.summary || ""}」`
           }
         ];
         heartNoteActiveTab = 'character';
