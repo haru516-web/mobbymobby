@@ -11,6 +11,7 @@ const compositingState = {
   templateId: COMPOSITING_TEMPLATES[0]?.id || "",
   templateImage: null,
   subjectCanvas: null,
+  subtitle: "",
   dragPointerId: null,
   dragOffsetX: 0,
   dragOffsetY: 0,
@@ -60,6 +61,37 @@ function getCompositingContext() {
   return getCompositingCanvas()?.getContext("2d");
 }
 
+function drawCompositingSubtitle(ctx, canvas) {
+  const subtitle = String(compositingState.subtitle || "").trim();
+  if (!subtitle) return;
+
+  const fontSize = Math.max(28, Math.round(canvas.width * 0.035));
+  const maxWidth = canvas.width * 0.7;
+  const centerX = canvas.width * 0.5;
+  const topY = canvas.height * 0.155;
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${fontSize}px "Arial", sans-serif`;
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.96)";
+  ctx.lineWidth = Math.max(8, Math.round(fontSize * 0.34));
+  ctx.fillStyle = "#5b4a3f";
+
+  let output = subtitle;
+  while (ctx.measureText(output).width > maxWidth && output.length > 1) {
+    output = output.slice(0, -1);
+  }
+  if (output.length < subtitle.length) {
+    output = `${output.slice(0, Math.max(0, output.length - 1))}…`;
+  }
+
+  ctx.strokeText(output, centerX, topY, maxWidth);
+  ctx.fillText(output, centerX, topY, maxWidth);
+  ctx.restore();
+}
+
 function getSubjectPixelRect(canvas) {
   const subjectCanvas = compositingState.subjectCanvas;
   if (!subjectCanvas) return null;
@@ -91,6 +123,7 @@ function renderCompositingPreview() {
   if (compositingState.templateImage) {
     ctx.drawImage(compositingState.templateImage, 0, 0);
   }
+  drawCompositingSubtitle(ctx, canvas);
   const rect = getSubjectPixelRect(canvas);
   if (compositingState.subjectCanvas && rect) {
     ctx.drawImage(compositingState.subjectCanvas, rect.x, rect.y, rect.width, rect.height);
@@ -175,16 +208,22 @@ async function handleCompositingUpload(file) {
 function initCompositingTool() {
   const canvas = getCompositingCanvas();
   const scaleInput = document.getElementById("compositingScale");
+  const subtitleInput = document.getElementById("compositingSubtitle");
   const uploadButton = document.getElementById("compositingUploadButton");
   const fileInput = document.getElementById("compositingFileInput");
   const downloadButton = document.getElementById("compositingDownloadButton");
-  if (!canvas || !scaleInput || !uploadButton || !fileInput || !downloadButton) return;
+  if (!canvas || !scaleInput || !subtitleInput || !uploadButton || !fileInput || !downloadButton) return;
 
   renderCompositingTemplates();
   setActiveCompositingTemplate(compositingState.templateId).catch(console.error);
 
   scaleInput.addEventListener("input", () => {
     compositingState.subject.scale = Number(scaleInput.value || 30) / 100;
+    renderCompositingPreview();
+  });
+
+  subtitleInput.addEventListener("input", () => {
+    compositingState.subtitle = subtitleInput.value || "";
     renderCompositingPreview();
   });
 

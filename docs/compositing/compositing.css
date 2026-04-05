@@ -154,6 +154,31 @@
   accent-color: #ff4d8d;
 }
 
+.compositing-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.compositing-text-input {
+  width: 100%;
+  border: 1px solid rgba(133, 101, 85, 0.18);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.9);
+  color: var(--color-earth);
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.compositing-text-input::placeholder {
+  color: #a18f81;
+}
+
+.compositing-text-input:focus {
+  outline: none;
+  border-color: rgba(255, 77, 141, 0.42);
+  box-shadow: 0 0 0 4px rgba(255, 77, 141, 0.12);
+}
+
 .compositing-status {
   min-height: 42px;
   padding: 12px 14px;
