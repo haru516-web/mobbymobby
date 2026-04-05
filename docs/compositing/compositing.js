@@ -1,9 +1,27 @@
 const COMPOSITING_TEMPLATES = [
   {
+    id: "mobby-fact",
+    name: "もびりん",
+    description: "Fact template",
+    src: "compositing/template/mobby_fact_compositing.jpg"
+  },
+  {
+    id: "mobby-gal",
+    name: "もびち",
+    description: "Gal template",
+    src: "compositing/template/mobby_gal_compositing.jpg"
+  },
+  {
     id: "mobby-yami",
     name: "病みモビー",
     description: "テンプレ右下に人物を重ねて配置",
     src: "compositing/template/mobby_yami_compositing.png"
+  },
+  {
+    id: "mobby-yanki",
+    name: "もびやん",
+    description: "Yanki template",
+    src: "compositing/template/mobby_yanki_compositing.jpg"
   }
 ];
 
