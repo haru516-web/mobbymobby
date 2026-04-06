@@ -2475,6 +2475,37 @@
       letter-spacing: 0;
     }
 
+    .gift-fan-action.has-new-badge {
+      overflow: visible;
+    }
+
+    .gift-fan-new-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 248, 239, 0.98);
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      box-shadow:
+        0 3px 8px rgba(89, 70, 52, 0.16),
+        inset 0 0 0 1px rgba(47, 79, 79, 0.18);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .gift-fan-new-badge .badge-n { color: #ff3e9a; }
+    .gift-fan-new-badge .badge-e { color: #1f78e8; }
+    .gift-fan-new-badge .badge-w { color: #ffca1f; }
+    .gift-fan-new-badge .badge-mark { color: var(--color-forest); }
+
     .gift-fan-diagnosis-action {
       position: absolute;
       right: 0;
@@ -5057,8 +5088,8 @@
               <button class="btn btn-secondary action-box-btn gift-fan-action" id="openPricePopup" data-fan-item="price">診断</button>
               <button class="btn btn-secondary action-box-btn gift-fan-action" id="openFaqPopup" data-fan-item="faq">お問い合わせ</button>
               <button class="btn btn-secondary action-box-btn gift-fan-action" id="openEncyclopediaPopup" data-fan-item="encyclopedia">図鑑</button>
-              <button class="btn btn-secondary action-box-btn gift-fan-action" id="openVotePopup" data-fan-item="vote">投票</button>
-              <button class="btn btn-secondary action-box-btn gift-fan-action" id="openCompositingPopup" data-fan-item="compositing">合成</button>
+              <button class="btn btn-secondary action-box-btn gift-fan-action has-new-badge" id="openVotePopup" data-fan-item="vote">投票<span class="gift-fan-new-badge" aria-hidden="true"><span class="badge-n">N</span><span class="badge-e">E</span><span class="badge-w">W</span><span class="badge-mark">!</span></span></button>
+              <button class="btn btn-secondary action-box-btn gift-fan-action has-new-badge" id="openCompositingPopup" data-fan-item="compositing">合成<span class="gift-fan-new-badge" aria-hidden="true"><span class="badge-n">N</span><span class="badge-e">E</span><span class="badge-w">W</span><span class="badge-mark">!</span></span></button>
             </div>
             <div class="gift-fan-diagnosis-actions" aria-hidden="true">
               <a class="btn btn-secondary action-box-btn gift-fan-diagnosis-action" href="16school/index.html" data-diagnosis-item="school">学校</a>
@@ -5351,10 +5382,6 @@
 
       function startAutoRotate() {
         stopAutoRotate();
-        if (reduceMotion.matches) return;
-        autoTimer = window.setInterval(() => {
-          setActiveSlide(activeIndex + 1);
-        }, 3200);
       }
 
       function switchCarouselSet(nextSetIndex) {
